@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_chat import message
 
 from langchain import PromptTemplate
 from langchain.llms import OpenAI
@@ -39,6 +40,12 @@ st.header("Get diagnostic and care direction based on your symptoms 📋")
 
 st.write("What are your symptoms?")
 
+# Storing the chat
+if 'generated' not in st.session_state:
+    st.session_state['generated'] = []
+
+if 'past' not in st.session_state:
+    st.session_state['past'] = []
 
 ### Getting the text inputs from all text fields ###
 
@@ -145,6 +152,15 @@ if symptom_input:
 
     with st.spinner('One moment, I am thinking...'):
         formatted_diagnosis = runModel(user_input)
-        st.write(formatted_diagnosis)
+        #st.write(formatted_diagnosis)
+    
+    # store the output 
+    st.session_state.past.append(user_input)
+    st.session_state.generated.append(formatted_diagnosis)
+
+    if st.session_state['generated']:
+        for i in range(len(st.session_state['generated'])-1, -1, -1):
+            message(st.session_state["generated"][i], key=str(i))
+            message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
 
 st.warning('Disclaimer: Dr. GPT is not a substitute for medical advice. In the event of an emergency, contact a medical professional.')
